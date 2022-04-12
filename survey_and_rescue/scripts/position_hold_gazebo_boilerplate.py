@@ -290,3 +290,5 @@ if __name__ == '__main__':
 		e_drone.waypoint()
 		e_drone.pid()
 		r.sleep()
+
+		# jksfhuisydfuysufdyt
