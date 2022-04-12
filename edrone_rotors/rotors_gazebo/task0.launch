@@ -1,0 +1,18 @@
+<launch>
+  <arg name="world_name" default="marker_spawn"/>
+  <arg name="enable_logging" default="false" />
+  <arg name="paused" value="false"/>
+  <arg name="debug" default="false"/>
+  <arg name="gui" default="true"/>
+  <arg name="verbose" default="true"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find rotors_gazebo)/worlds/$(arg world_name).world" />
+    <!-- <arg name="world_name" value="$(find rotors_gazebo)/worlds/camera.world" /> -->
+    <arg name="debug" value="$(arg debug)" />
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="gui" value="$(arg gui)" />
+    <arg name="verbose" value="$(arg verbose)"/>
+  </include>
+
+</launch>
