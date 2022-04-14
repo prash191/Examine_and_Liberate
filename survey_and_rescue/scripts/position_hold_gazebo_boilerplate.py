@@ -41,7 +41,7 @@ class Edrone():
 
 		# [x_setpoint, y_setpoint, z_setpoint]
 		self.setpoints = [[0.2, 0, 23], [3.5, -3.3, 23], [-4.4, -4.6, 20.7] , [-6.0, 6.3, 18.3], [5.0, 5.3, 16.3]]
-		self.setpoint_index = -1
+		self.setpoint_index = 0
 		self.setpoint = [0,0,0] # whycon marker at the position of the dummy given in the scene. Make the whycon marker associated with position_to_hold dummy renderable and make changes accordingly
 
 
@@ -266,13 +266,13 @@ class Edrone():
 			self.pitch_error_pub.publish(self.error[1])
 			self.alt_error_pub.publish(self.error[2])
 
-	def waypoint(self):
-		if e_drone.setpoint_index == 5:
+	def waypoint(self, id):
+		if id == len(self.setpoints):
 			return
-		self.setpoint = self.setpoints[self.setpoint_index]
+		self.setpoint = self.setpoints[id]
 		current_time = rospy.get_time()
 		print(current_time)
-		if current_time - self.prev_hold_time >= 5:
+		if current_time - self.prev_hold_time >= 4:
 			self.prev_hold_time = current_time
 			self.setpoint_index+=1
 
@@ -284,9 +284,9 @@ if __name__ == '__main__':
 	e_drone = Edrone()
 	r = rospy.Rate(30) #specify rate in Hz based upon your desired PID sampling time, i.e. if desired sample time is 33ms specify rate as 30Hz
 	while not rospy.is_shutdown():
-		if e_drone.setpoint_index == 5:
+		if e_drone.setpoint_index == len(e_drone.setpoints):
 			e_drone.land()
 			break
-		e_drone.waypoint()
+		e_drone.waypoint(e_drone.setpoint_index)
 		e_drone.pid()
 		r.sleep()
