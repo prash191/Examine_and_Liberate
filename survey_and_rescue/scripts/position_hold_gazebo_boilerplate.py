@@ -271,8 +271,10 @@ class Edrone():
 			return
 		self.setpoint = self.setpoints[id]
 		current_time = rospy.get_time()
+		if current_time != 0 and self.prev_hold_time == 0 and self.setpoint_index == 0:
+			self.prev_hold_time = current_time
 		print(current_time)
-		if current_time - self.prev_hold_time >= 4:
+		if current_time - self.prev_hold_time >= 3:
 			self.prev_hold_time = current_time
 			self.setpoint_index+=1
 
