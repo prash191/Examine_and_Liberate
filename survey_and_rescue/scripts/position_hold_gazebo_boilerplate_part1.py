@@ -40,7 +40,7 @@ class Edrone():
 		self.drone_position = [0.0,0.0,0.0]	
 
 		# [x_setpoint, y_setpoint, z_setpoint]
-		self.setpoint = [2,2,20] # whycon marker at the position of the dummy given in the scene. Make the whycon marker associated with position_to_hold dummy renderable and make changes accordingly
+		self.setpoint = [0,0,25] # whycon marker at the position of the dummy given in the scene. Make the whycon marker associated with position_to_hold dummy renderable and make changes accordingly
 
 
 		#Declaring a cmd of message type edrone_msgs and initializing values
@@ -57,9 +57,13 @@ class Edrone():
 
 		#initial setting of Kp, Kd and ki for [roll, pitch, throttle]. eg: self.Kp[2] corresponds to Kp value in throttle axis
 		#after tuning and computing corresponding PID parameters, change the parameters
-		self.Kp = [30,30,50]
-		self.Ki = [10,10,5]
-		self.Kd = [350,350,250]
+		# self.Kp = [30,30,50]
+		# self.Ki = [10,10,5]
+		# self.Kd = [350,350,250]
+
+		self.Kp = [25,25,80]
+		self.Ki = [0,0,0]
+		self.Kd = [300,350,320]
 
 
 		#-----------------------Add other required variables for pid here ----------------------------------------------
