@@ -13,13 +13,14 @@ import numpy as np
 import itertools
 
 class sr_determine_rois():
-
+	
 	def __init__(self):
 
 		self.bridge = CvBridge()
 		self.image_sub = rospy.Subscriber("/usb_cam/image_rect",Image,self.image_callback)
 		self.img = None
-	
+		self.img_copy = None
+
 	# CV_Bridge acts as the middle layer to convert images streamed on rostopics to a format that is compatible with OpenCV
 	def image_callback(self, data):
 		try:
@@ -37,11 +38,12 @@ class sr_determine_rois():
 	def detect_rois(self):
 		# Add your Code here
 		# You may add additional function parameters
-		cv2.imshow("Detected ROIs", img_copy) #A copy is chosen because self.img will be continuously changing due to the callback function
+		self.img_copy = self.img
+		cv2.imshow("Detected ROIs", self.img_copy) #A copy is chosen because self.img will be continuously changing due to the callback function
 		cv2.waitKey(100)
 
 		#grayscale, median blur, sharpen image
-		gray = cv2.cvtColor(img_copy, cv2.COLOR_BGR2GRAY)
+		gray = cv2.cvtColor(self.img_copy, cv2.COLOR_BGR2GRAY)
 		blur = cv2.medianBlur(gray, 5)
 		sharpen_kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
 		sharpen = cv2.filter2D(blur, -1, sharpen_kernel)
@@ -61,16 +63,17 @@ class sr_determine_rois():
 			area = cv2.contourArea(c)
 			if area > min_area and area < max_area:
 				x,y,w,h = cv2.boundingRect(c)
-				ROI = image[y:y+h, x:x+w]
+				ROI = cnts[y:y+h, x:x+w]
 				# ROI = image[y:y+h, x:x+w]
 				cv2.imwrite('ROI_{}.png'.format(image_number), ROI)
-				cv2.rectangle(image, (x, y), (x + w, y + h), (36,255,12), 2)
+				# cv2.rectangle(image, (x, y), (x + w, y + h), (36,255,12), 2)
+				cv2.rectangle(cnts, (x, y), (x + w, y + h), (36,255,12), 2)
 				image_number += 1
 
 		cv2.imshow('sharpen', sharpen)
 		cv2.imshow('close', close)
 		cv2.imshow('thresh', thresh)
-		cv2.imshow('image', image)
+		cv2.imshow('image', cnts)
 		cv2.waitKey()
 
 		# Please understand the order in which OpenCV detects the contours.
