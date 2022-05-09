@@ -17,8 +17,6 @@
     <!-- Uncomment and remap the topics to the corresponding topics. .launch files are treated as XML files and uncommenting follows the same convetions -->
     <remap from="/camera/camera_info" to="/usb_cam/camera_info"/>
     <remap from="/camera/image_rect_color" to="/usb_cam/image_rect_color"/>
-
-
   </node>
 
 
