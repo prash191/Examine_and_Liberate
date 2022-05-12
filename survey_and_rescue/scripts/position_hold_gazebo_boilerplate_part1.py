@@ -40,7 +40,7 @@ class Edrone():
 		self.drone_position = [0.0,0.0,0.0]	
 
 		# [x_setpoint, y_setpoint, z_setpoint]
-		self.setpoint = [0,0,25] # whycon marker at the position of the dummy given in the scene. Make the whycon marker associated with position_to_hold dummy renderable and make changes accordingly
+		self.setpoint = [-4.7,-6.7,25] # whycon marker at the position of the dummy given in the scene. Make the whycon marker associated with position_to_hold dummy renderable and make changes accordingly
 
 
 		#Declaring a cmd of message type edrone_msgs and initializing values
@@ -65,9 +65,9 @@ class Edrone():
 		#self.Ki = [0,0,0]
 		#self.Kd = [400,350,350]
 		
-		self.Kp = [30,30,20]
-		self.Ki = [0,0,0]
-		self.Kd = [350,350,300]
+		self.Kp = [8, 8, 40]
+		self.Ki = [0.7, 0.7, 0]
+		self.Kd = [380,380,360]
 
 		#-----------------------Add other required variables for pid here ----------------------------------------------
 
@@ -177,22 +177,22 @@ class Edrone():
 	# Callback function for /pid_tuning_altitude
 	# This function gets executed each time when /tune_pid publishes /pid_tuning_altitude
 	def altitude_set_pid(self,alt):
-		self.Kp[2] = alt.Kp * 0.06 # This is just for an example. You can change the ratio/fraction value accordingly
-		self.Ki[2] = alt.Ki * 0.008
-		self.Kd[2] = alt.Kd * 0.3
+		self.Kp[2] = alt.Kp * 0.016 # This is just for an example. You can change the ratio/fraction value accordingly
+		self.Ki[2] = alt.Ki * 0.015
+		self.Kd[2] = alt.Kd * 0.08
 
 	#----------------------------Define callback function like altitide_set_pid to tune pitch, roll--------------
 
 
 	def pitch_set_pid(self,pitch):
-		self.Kp[1] = pitch.Kp * 0.06 
-		self.Ki[1] = pitch.Ki * 0.008
-		self.Kd[1] = pitch.Kd * 0.3
+		self.Kp[1] = pitch.Kp * 0.016 
+		self.Ki[1] = pitch.Ki * 0.015
+		self.Kd[1] = pitch.Kd * 0.08
 
 	def roll_set_pid(self,roll):
-		self.Kp[0] = roll.Kp * 0.06
-		self.Ki[0] = roll.Ki * 0.008
-		self.Kd[0] = roll.Kd * 0.3
+		self.Kp[0] = roll.Kp * 0.016
+		self.Ki[0] = roll.Ki * 0.015
+		self.Kd[0] = roll.Kd * 0.08
 
 
 

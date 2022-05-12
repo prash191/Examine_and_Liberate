@@ -151,9 +151,11 @@ def main(args):	#Sample process flow
 		while True:
 			if r.img is not None:
 				r.detect_rois()
-				if(len(self.dic) != 36):
+				r.sort_rois()
+				# r.save_rois()
+				if(len(r.dic) != 36):
 					r.sort_rois()
-					r.save_rois()					
+					# r.save_rois()					
 					new_thresh_flag = r.query_yes_no("36 cells were not detected, do you want to change ##Enter tweaks, this is not necessary##?")
 					if(new_thresh_flag):
 						pass
