@@ -87,11 +87,11 @@ class sr_determine_rois():
 			a.sort(key = lambda x:x[1])
 			ls.append(a)
 			j=0
-			for A in a:
-				x,y,w,h = A
+			for val in a:
+				x,y,w,h = val
 				cv2.rectangle(img_copy,(x,y),(x+w,y+h),(0,255,0),3)
 				txt = clm[i/6]+row[j]
-				self.dic.update({txt:A})
+				self.dic.update({txt:val})
 				cv2.putText(img_copy, txt, (x+w/4,y+h/2), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255,255), 2, cv2.LINE_AA)
 				cv2.imshow('Contour', img_copy)
 

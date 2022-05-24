@@ -5,6 +5,7 @@
   <arg name="outer_diameter" default="0.55"/>
   <arg name="inner_diameter" default="0.20"/>
 
+
   <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen" >
     <!-- You may need to change the value of the video_device field,, refer to the document for more details -->
     <param name="video_device" value="/dev/video1" />

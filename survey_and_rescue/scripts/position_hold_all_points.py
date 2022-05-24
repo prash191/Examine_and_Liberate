@@ -1,20 +1,3 @@
-# import json
-
-# val = ["A1","A2","A3","A4","A5","A6",
-# "B1","B2","B3","B4","B5","B6",
-# "C1","C2","C3","C4","C5","C6",
-# "D1","D2","D3","D4","D5","D6",
-# "E1","E2","E3","E4","E5","E6",
-# "F1","F2","F3","F4","F5","F6",
-# ]
-# setpoint=[]
-# with open("cell_coords.json", "r") as read_file:
-#     data = json.load(read_file)
-# for i in range(0,36):
-#     setpoint.append(data[val[i]])
-# print(setpoint)
-
-
 #!/usr/bin/env python
 
 '''
@@ -36,6 +19,7 @@ CODE MODULARITY AND TECHNIQUES MENTIONED LIKE THIS WILL HELP YOU GAINING MORE MA
 
 # Importing the required libraries
 
+from operator import index
 from edrone_client.msg import *
 from geometry_msgs.msg import PoseArray
 from std_msgs.msg import Int16
@@ -57,15 +41,16 @@ class Edrone():
 		# [x,y,z]
 		self.drone_position = [0.0,0.0,0.0]	
         
-        # self.val = ["A1","A2","A3","A4","A5","A6","B1","B2","B3","B4","B5","B6","C1","C2","C3","C4","C5","C6","D1","D2","D3","D4","D5","D6","E1","E2","E3","E4","E5","E6","F1","F2","F3","F4","F5","F6"]
-
-		# [x_setpoint, y_setpoint, z_setpoint]
-
+		# self.val = ["A1","A2","A3","A4","A5","A6","B1","B2","B3","B4","B5","B6","C1","C2","C3","C4","C5","C6","D1","D2","D3","D4","D5","D6","E1","E2","E3","E4","E5","E6","F1","F2","F3","F4","F5","F6"]
+		self.val = ["B2","D5","B2"]
 		self.setpoints = []
-        # with open("cell_coords.json", "r") as read_file:
-        # self.data = json.load(read_file)
-        # for i in range(0,36):
-        #     self.setpoint.append(self.data[self.val[i]])
+		# [x_setpoint, y_setpoint, z_setpoint]
+		# self.setpoints = [[-4.825, -6.161, 27.156], [-7.96, 1.052, 26.507], [-4.825, -6.161, 27.156], [5.423, 4.647, 26.27], [-4.825, -6.161, 27.156]]
+		with open("cell_coords.json", "r") as read_file:
+			self.data = json.load(read_file)
+		
+		for i in range(0,3):
+			self.setpoints.append(self.data[self.val[i]])
 
 		self.setpoint_index = 0
 		self.setpoint = [0,0,0] # whycon marker at the position of the dummy given in the scene. Make the whycon marker associated with position_to_hold dummy renderable and make changes accordingly
@@ -85,16 +70,28 @@ class Edrone():
 
 		#initial setting of Kp, Kd and ki for [roll, pitch, throttle]. eg: self.Kp[2] corresponds to Kp value in throttle axis
 		#after tuning and computing corresponding PID parameters, change the parameters
-		self.Kp = [30,30,50]	
-		self.Ki = [10,10,5]	
-		self.Kd = [350,350,250]	
+		# self.Kp = [10, 9, 40]
+		# self.Ki = [0.5, 0.4, 0]
+		# self.Kd = [375,370,340]
+		# {"A1": [-7.524, -8.883, 24.068], "A3": [-8.169, -2.404, 26.456], "A2": [-7.895, -5.835, 25.595],
 
+# veryyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy imppppppppppppppppppppppppppp
+		# self.Kp = [15, 13, 45]
+		# self.Ki = [0.2, 0.2, 0.1]
+		# self.Kd = [320,320,240]
+
+		# self.Kp = [10, 10, 45]
+		# self.Ki = [0.2, 0.2, 0.1]
+		# self.Kd = [340,340,240]
+
+		self.Kp = [[8, 8, 42], [15, 32, 45]]
+		self.Ki = [[0, 0, 0], [0.2, 0.2, 0.1]]
+		self.Kd = [[350,350,270], [320, 320, 240]]
 
 		#-----------------------Add other required variables for pid here ----------------------------------------------
 
-		self.max_values = [2000,2000,2000]
-		self.min_values = [1000,1000,1000]
-
+		self.max_value = [2000, 2000, 2000]
+		self.min_value = [1000, 1000, 1000]
 		self.prev_values = [0,0,0]
 
 
@@ -107,7 +104,7 @@ class Edrone():
 		#----------------------------------------------------------------------------------------------------------
 
 		# # This is the sample time in which you need to run pid. Choose any time which you seem fit. Remember the stimulation step time is 50 ms
-		self.sample_time = 0.070 # in seconds
+		self.sample_time = 0.050 # in seconds
 		self.cur_time = 0.00
 		self.prev_time = 0.00
 		self.prev_hold_time = 0.00
@@ -180,7 +177,7 @@ class Edrone():
 		self.cmd.rcRoll = 1500
 		self.cmd.rcYaw = 1500
 		self.cmd.rcPitch = 1500
-		self.cmd.rcThrottle = 1100
+		self.cmd.rcThrottle = 1000
 		self.cmd.rcAUX4 = 1500
 		self.command_pub.publish(self.cmd)	# Publishing /drone_command
 		rospy.sleep(0.5)
@@ -226,17 +223,18 @@ class Edrone():
 		
 	def pid(self):
 	#-----------------------------Write the PID algorithm here--------------------------------------------------------------
-		self.cur_time = rospy.get_time()
-		if(self.cur_time - self.prev_time >= self.sample_time):
+		# self.cur_time = rospy.get_time()
+		# if(self.cur_time - self.prev_time >= self.sample_time):
 
 		# Steps:
 		# 	1. Compute error in each axis. eg: error[0] = self.drone_position[0] - self.setpoint[0] ,where error[0] corresponds to error in x...
 		
-			for i in range(0,3):
-				self.sum_of_error[i] = 0
-
+			
 			for i in range(0,3):
 				self.error[i] = self.drone_position[i] - self.setpoint[i]
+
+			for i in range(0,3):
+				self.sum_of_error[i]+=self.error[i] 
 
 		#	2. Compute the error (for proportional), change in error (for derivative) and sum of errors (for integral) in each axis. Refer "Understanding PID.pdf" to understand PID equation.
 			for i in range(0,3):
@@ -245,9 +243,16 @@ class Edrone():
 		 	
 
 		#	3. Calculate the pid output required for each axis. For eg: calcuate self.out_roll, self.out_pitch, etc.
-			self.out_roll  = self.Kp[0]*self.error[0] + (self.sum_of_error[0] + self.error[0]) * self.Ki[0] + self.Kd[0]*self.change_in_error[0]
-			self.out_pitch = self.Kp[1]*self.error[1] + (self.sum_of_error[1] + self.error[1]) * self.Ki[1] + self.Kd[1]*self.change_in_error[1]
-			self.out_alt   = self.Kp[2]*self.error[2] + (self.sum_of_error[2] + self.error[2]) * self.Ki[2] + self.Kd[2]*self.change_in_error[2]
+			# 2.011, 1.109, 26.95==d4,,,,,,,,,,,,,,-4.702, -6.123, 27.047,,,,,,,,,,,,,,,,,,,,,,,,7.815, 7.438, 21.89==f6
+			id = 0
+			if(abs(self.error[0])>6.7 or abs(self.error[1])>7.2):
+				id = 0
+			else:
+				id=1
+
+			self.out_roll  = self.Kp[id][0]*self.error[0] + (self.sum_of_error[0]) * self.Ki[id][0] + self.Kd[id][0]*self.change_in_error[0]
+			self.out_pitch = self.Kp[id][1]*self.error[1] + (self.sum_of_error[1]) * self.Ki[id][1] + self.Kd[id][1]*self.change_in_error[1]
+			self.out_alt   = self.Kp[id][2]*self.error[2] + (self.sum_of_error[2]) * self.Ki[id][2] + self.Kd[id][2]*self.change_in_error[2]
 			
 		#	4. Reduce or add this computed output value on the avg value ie 1500. For eg: self.cmd.rcRoll = 1500 + self.out_roll. LOOK OUT FOR SIGN (+ or -). EXPERIMENT AND FIND THE CORRECT SIGN
 			self.cmd.rcRoll=1500-self.out_roll
@@ -257,36 +262,39 @@ class Edrone():
 
 		#	6. Limit the output value and the final command value between the maximum(2000) and minimum(1000)range before publishing. For eg : if self.cmd.rcPitch > self.max_values[1]:
 		#																														self.cmd.rcPitch = self.max_values[1]
-			if self.cmd.rcRoll > self.max_values[0]:
-				self.cmd.rcRoll = self.max_values[0]
+			if self.cmd.rcRoll > self.max_value[0]:
+				self.cmd.rcRoll = self.max_value[0]
 
-			if self.cmd.rcRoll < self.min_values[0]:
-				self.cmd.rcRoll = self.min_values[0]
+			if self.cmd.rcRoll < self.min_value[0]:
+				self.cmd.rcRoll = self.min_value[0]
 			
-			if self.cmd.rcPitch > self.max_values[1]:
-				self.cmd.rcPitch = self.max_values[1]
+			if self.cmd.rcPitch > self.max_value[1]:
+				self.cmd.rcPitch = self.max_value[1]
 
-			if self.cmd.rcPitch < self.min_values[1]:
-				self.cmd.rcPitch = self.min_values[1]
+			if self.cmd.rcPitch < self.min_value[1]:
+				self.cmd.rcPitch = self.min_value[1]
 
-			if self.cmd.rcThrottle > self.max_values[2]:
-				self.cmd.rcThrottle = self.max_values[2]
+			if self.cmd.rcThrottle > self.max_value[2]:
+				self.cmd.rcThrottle = self.max_value[2]
 
-			if self.cmd.rcThrottle < self.min_values[2]:
-				self.cmd.rcThrottle = self.min_values[2]
+			if self.cmd.rcThrottle < self.min_value[2]:
+				self.cmd.rcThrottle = self.min_value[2]
 
 
 		#	7. Update previous errors.eg: self.prev_error[1] = error[1] where index 1 corresponds to that of pitch (eg)
-			
 			for i in range(0,3):
 				self.prev_error[i] = self.error[i]
 		#	8. Add error_sum= 
-			for i in range(0,3):
-				self.sum_of_error[i]+=self.error[i] 
-
-
-			self.prev_time = self.cur_time
 			
+
+			self.cur_time = rospy.get_time()
+
+			if(self.cur_time - self.prev_time >= self.sample_time):
+				
+				self.prev_time = self.cur_time
+				for i in range(0,3):
+					self.sum_of_error[i] = 0
+				
 			self.command_pub.publish(self.cmd)
 			self.roll_error_pub.publish(self.error[0])
 			self.pitch_error_pub.publish(self.error[1])
@@ -297,10 +305,17 @@ class Edrone():
 			return
 		self.setpoint = self.setpoints[id]
 		current_time = rospy.get_time()
+		# current_time =  rospy.get_rostime()
+
 		if current_time != 0 and self.prev_hold_time == 0 and self.setpoint_index == 0:
 			self.prev_hold_time = current_time
-		print(current_time)
-		if current_time - self.prev_hold_time >= 3:
+		
+		# print("self.setpoint = ", self.val[id])
+		# print("current_time = ",current_time)
+		# print("self.prev_hold_time = ", self.prev_hold_time)
+		# print()
+
+		if current_time - self.prev_hold_time >= 12:
 			self.prev_hold_time = current_time
 			self.setpoint_index+=1
 
@@ -310,7 +325,7 @@ class Edrone():
 if __name__ == '__main__':
 
 	e_drone = Edrone()
-	r = rospy.Rate(30) #specify rate in Hz based upon your desired PID sampling time, i.e. if desired sample time is 33ms specify rate as 30Hz
+	r = rospy.Rate(20) #specify rate in Hz based upon your desired PID sampling time, i.e. if desired sample time is 33ms specify rate as 30Hz
 	while not rospy.is_shutdown():
 		if e_drone.setpoint_index == len(e_drone.setpoints):
 			e_drone.land()
@@ -318,5 +333,3 @@ if __name__ == '__main__':
 		e_drone.waypoint(e_drone.setpoint_index)
 		e_drone.pid()
 		r.sleep()
-
-
