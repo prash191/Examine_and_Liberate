@@ -65,24 +65,24 @@ class sr_determine_colors():
 		cv2.waitKey(0)
 		k=0
 		for i in self.rect_list:
-				location=str(chr(k/6+65)+str(k%6+1))
-				x,y,w,h = i
-				cell=img_copy[y:y+h ,x:x+w]
-				for l in range(0,3):
-					mask=cv2.inRange(cell,self.color_bound[l],self.color_bound[l])
-					if np.sum(mask==255)>30:
-						try:
-						    if self.beacons[location]!=self.info[l]:
-								self.detect_info_msg.location=location
-								self.detect_info_msg.info=self.info[l]
-								self.detect_pub.publish(self.detect_info_msg)
-								self.beacons[location]=self.info[l]
-						except KeyError:
+			location=str(chr(k/6+65)+str(k%6+1))
+			x,y,w,h = i
+			cell=img_copy[y:y+h ,x:x+w]
+			for l in range(0,3):
+				mask=cv2.inRange(cell,self.color_bound[l],self.color_bound[l])
+				if np.sum(mask==255)>30:
+					try:
+						if self.beacons[location]!=self.info[l]:
 							self.detect_info_msg.location=location
 							self.detect_info_msg.info=self.info[l]
 							self.detect_pub.publish(self.detect_info_msg)
 							self.beacons[location]=self.info[l]
-						break
+					except KeyError:
+						self.detect_info_msg.location=location
+						self.detect_info_msg.info=self.info[l]
+						self.detect_pub.publish(self.detect_info_msg)
+						self.beacons[location]=self.info[l]
+					break
 				k=k+1
 
 	def check_whether_lit(self):
