@@ -152,7 +152,7 @@ def main(args):	#Sample process flow
 			if r.img is not None:
 				r.detect_rois()
 				r.sort_rois()
-				# r.save_rois()
+				r.save_rois()
 				if(len(r.dic) != 36):
 					r.sort_rois()
 					# r.save_rois()					
@@ -164,7 +164,8 @@ def main(args):	#Sample process flow
 						continue
 				else:
 					satis_flag = r.query_yes_no("Are you satisfied with the currently detected ROIs?")
-					if(satis_flag):
+					
+					if(satis_flag=="True"):
 						r.sort_rois()
 						r.save_rois()
 						cv2.destroyAllWindows()
