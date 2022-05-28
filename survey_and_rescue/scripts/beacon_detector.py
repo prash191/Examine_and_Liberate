@@ -61,15 +61,15 @@ class sr_determine_colors():
  	
 	def detect_color_contour_centers(self, color_str):
 		img_copy=cv2.threshold(self.img, 127, 255, cv2.THRESH_BINARY)[1]
-		cv2.imshow("abc", img_copy)
-		cv2.waitKey(0)
 		k=0
 		for i in self.rect_list:
 			location=str(chr(k/6+65)+str(k%6+1))
+			print(location)
 			x,y,w,h = i
 			cell=img_copy[y:y+h ,x:x+w]
 			for l in range(0,3):
 				mask=cv2.inRange(cell,self.color_bound[l],self.color_bound[l])
+				print(mask)
 				if np.sum(mask==255)>30:
 					try:
 						if self.beacons[location]!=self.info[l]:
@@ -83,7 +83,7 @@ class sr_determine_colors():
 						self.detect_pub.publish(self.detect_info_msg)
 						self.beacons[location]=self.info[l]
 					break
-				k=k+1
+			k=k+1
 
 	def check_whether_lit(self):
 		pass

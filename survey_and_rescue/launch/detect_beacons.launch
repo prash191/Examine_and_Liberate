@@ -16,8 +16,8 @@
 
 <!-- Max rate has been set to 30, values above that will still publish at 30Hz -->
 <!-- Args for rosserial -->
-<!-- <arg name="port" default="/dev/ttyUSB0"/>
-<arg name="baud" default="115200"/> -->
+<arg name="port" default="/dev/ttyUSB0"/>
+<arg name="baud" default="115200"/>
 
 <arg name="record" default="false"/>
 

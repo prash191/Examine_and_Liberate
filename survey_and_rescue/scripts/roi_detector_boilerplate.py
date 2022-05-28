@@ -67,7 +67,7 @@ class sr_determine_rois():
 			area = cv2.contourArea(c)
 			if area > min_area and area < max_area:
 				# print("i'm here")
-				print("area == ",area)
+				# print("area == ",area)
 				x,y,w,h = cv2.boundingRect(c)
 				self.cor.append((x,y,w,h))
 		
