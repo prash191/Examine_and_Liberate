@@ -12,7 +12,7 @@
 <arg name="stats_topic_rate" default="15"/>
 <arg name="num_beacons" default="8"/>
 <arg name="print_time" default="True"/>
-<arg name="continuous_hovering" default="True"/>
+<arg name="continuous_hovering" default="False"/>
 
 <!-- Max rate has been set to 30, values above that will still publish at 30Hz -->
 <!-- Args for rosserial -->
@@ -29,7 +29,7 @@ You may move this node to another launch file such as usb_cam_SR.launch, look at
 	<param name="~baud" value="$(arg baud)"/>
 </node> -->
 
-<node pkg="survey_and_rescue" type="monitor.pyc" name="monitor" output="screen">
+<node pkg="survey_and_rescue" type="monitor_org_config.pyc" name="monitor" output="screen">
 	<param name="~start_on_base" value="$(arg start_on_base)"/>
 	<param name="~start_with_countdown" value="$(arg start_with_countdown)"/>
 	<param name="~countdown" value="$(arg countdown)"/>

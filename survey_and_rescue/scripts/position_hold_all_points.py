@@ -28,33 +28,37 @@ from std_msgs.msg import Float64
 from pid_tune.msg import PidTune
 import rospy
 import time
+import sys, select, termios, tty
 import json
 
+def getKey():
+    tty.setraw(sys.stdin.fileno())
+    rlist, _, _ = select.select([sys.stdin], [], [], 0.1)
+    if rlist:
+        key = sys.stdin.read(1)
+    else:
+        key = ''
+
+    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
+    return key
 
 class Edrone():
 	"""docstring for Edrone"""
 	def __init__(self):
 		
 		rospy.init_node('drone_control')	# initializing ros node with name drone_control
+		
 
 		# This corresponds to your current position of drone. This value must be updated each time in your whycon callback
 		# [x,y,z]
 		self.drone_position = [0.0,0.0,0.0]	
-        
-		# self.val = ["A1","A2","A3","A4","A5","A6","B1","B2","B3","B4","B5","B6","C1","C2","C3","C4","C5","C6","D1","D2","D3","D4","D5","D6","E1","E2","E3","E4","E5","E6","F1","F2","F3","F4","F5","F6"]
-		self.val = ["B2","D5","B2"]
-		self.setpoints = []
-		# [x_setpoint, y_setpoint, z_setpoint]
-		# self.setpoints = [[-4.825, -6.161, 27.156], [-7.96, 1.052, 26.507], [-4.825, -6.161, 27.156], [5.423, 4.647, 26.27], [-4.825, -6.161, 27.156]]
+		self.data = {}
 		with open("cell_coords.json", "r") as read_file:
 			self.data = json.load(read_file)
+
+		self.setpoint = []
 		
-		for i in range(0,3):
-			self.setpoints.append(self.data[self.val[i]])
-
-		self.setpoint_index = 0
-		self.setpoint = [0,0,0] # whycon marker at the position of the dummy given in the scene. Make the whycon marker associated with position_to_hold dummy renderable and make changes accordingly
-
+	
 
 		#Declaring a cmd of message type edrone_msgs and initializing values
 		self.cmd = edrone_msgs()
@@ -137,6 +141,10 @@ class Edrone():
 
 
 		# Subscribing to /whycon/poses, /pid_tuning_altitude, /pid_tuning_pitch, pid_tuning_roll
+		
+		#*********************************for last task
+		rospy.Subscriber('/decision_info',SRInfo,self.decision_callback)
+
 		rospy.Subscriber('whycon/poses', PoseArray, self.whycon_callback)
 		rospy.Subscriber('/pid_tuning_altitude',PidTune,self.altitude_set_pid)
 		#-------------------------Add other ROS Subscribers here----------------------------------------------------
@@ -146,11 +154,23 @@ class Edrone():
 
 
 
-
+		
 
 		#------------------------------------------------------------------------------------------------------------
 
 		self.arm() # ARMING THE DRONE
+
+
+
+
+	#*********************************for last task
+	def decision_callback(self,msg):
+		self.out=[0,0,0]
+		self.Iterm=[0,0,0]
+		
+		self.setpoint = (self.data[msg.location])
+		# self.setpoint=self.cell_coords.get(msg.location)
+
 
 
 	# Disarming condition of the drone
@@ -300,36 +320,50 @@ class Edrone():
 			self.pitch_error_pub.publish(self.error[1])
 			self.alt_error_pub.publish(self.error[2])
 
-	def waypoint(self, id):
-		if id == len(self.setpoints):
-			return
-		self.setpoint = self.setpoints[id]
-		current_time = rospy.get_time()
-		# current_time =  rospy.get_rostime()
+	# def waypoint(self, id):
+	# 	if id == len(self.setpoints):
+	# 		return
+	# 	self.setpoint = self.setpoints[id]
+	# 	current_time = rospy.get_time()
+	# 	# current_time =  rospy.get_rostime()
 
-		if current_time != 0 and self.prev_hold_time == 0 and self.setpoint_index == 0:
-			self.prev_hold_time = current_time
+	# 	if current_time != 0 and self.prev_hold_time == 0 and self.setpoint_index == 0:
+	# 		self.prev_hold_time = current_time
 		
-		# print("self.setpoint = ", self.val[id])
-		# print("current_time = ",current_time)
-		# print("self.prev_hold_time = ", self.prev_hold_time)
-		# print()
+	# 	# print("self.setpoint = ", self.val[id])
+	# 	# print("current_time = ",current_time)
+	# 	# print("self.prev_hold_time = ", self.prev_hold_time)
+	# 	# print()
 
-		if current_time - self.prev_hold_time >= 12:
-			self.prev_hold_time = current_time
-			self.setpoint_index+=1
+	# 	if current_time - self.prev_hold_time >= 12:
+	# 		self.prev_hold_time = current_time
+	# 		self.setpoint_index+=1
 
 
 
 
 if __name__ == '__main__':
 
+	settings = termios.tcgetattr(sys.stdin)
 	e_drone = Edrone()
-	r = rospy.Rate(20) #specify rate in Hz based upon your desired PID sampling time, i.e. if desired sample time is 33ms specify rate as 30Hz
+	r = rospy.Rate(20)
 	while not rospy.is_shutdown():
-		if e_drone.setpoint_index == len(e_drone.setpoints):
-			e_drone.land()
-			break
-		e_drone.waypoint(e_drone.setpoint_index)
 		e_drone.pid()
 		r.sleep()
+		key = getKey()
+		if key == '\x03':
+			break
+	e_drone.land()
+	e_drone.disarm()
+	termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
+
+
+	# e_drone = Edrone()
+	# r = rospy.Rate(20) #specify rate in Hz based upon your desired PID sampling time, i.e. if desired sample time is 33ms specify rate as 30Hz
+	# while not rospy.is_shutdown():
+	# 	if e_drone.setpoint_index == len(e_drone.setpoints):
+	# 		e_drone.land()
+	# 		break
+	# 	# e_drone.waypoint(e_drone.setpoint_index)
+	# 	e_drone.pid()
+	# 	r.sleep()
