@@ -48,7 +48,7 @@ class sr_determine_colors():
 
 # 
 
-# * Function Name: load_rois.
+# * Function Name: load_rois..
 # * Input: NONE.
 # * Output: NONE.
 # * Logic: store the whycon coordinate from RoIs.json file.
@@ -58,7 +58,7 @@ class sr_determine_colors():
 # 
 
 	def load_rois(self, file_path = 'rect_info.pkl'):
-		with open("RoIs.json", "r") as read_file:
+		with open("/home/prashant/catkin_ws/src/Examine_and_Liberate/survey_and_rescue/scripts/RoIs.json", "r") as read_file:
 			self.data = json.load(read_file)
 			for i in clm:
 			    for j in row:
@@ -111,7 +111,7 @@ class sr_determine_colors():
 			st=""
 			x,y,w,h= i
 			image = self.img
-			cp_image=image[y+15:y+h-15,x+15:x+h-15] #------------------
+			cp_image=image[y+5:y+h-20,x+5:x+h-20] #------------------
 			hsv = cv2.cvtColor(cp_image,cv2.COLOR_BGR2HSV)
 			# cv2.imshow("hsv",hsv)
 			# cv2.waitKey(0)
@@ -130,7 +130,8 @@ class sr_determine_colors():
 
 
 			# blue LED
-			lower_blue = np.array([100,150,150])
+			# lower_blue = np.array([100,150,150])
+			lower_blue = np.array([100,150,170])
 			upper_blue = np.array([130,255,255])# upper limit of hsv for blue led detection.
 			mask = cv2.inRange(hsv, lower_blue, upper_blue)
 			M = cv2.moments(mask)
@@ -145,6 +146,7 @@ class sr_determine_colors():
 
 			#greeen LED
 			lower_green = np.array([52,25,212])
+			# lower_green = np.array([62,35,222])
 			upper_green = np.array([80,255,255])# upper limit of hsv for green led detection.
 			mask = cv2.inRange(hsv, lower_green, upper_green)
 

@@ -25,7 +25,7 @@ from survey_and_rescue.msg import *
 from geometry_msgs.msg import PoseArray
 import time
 import csv
-with open("/home/default/catkin_ws/src/survey_and_rescue/scripts/cell_coords.json", "r") as read_file:
+with open("/home/prashant/catkin_ws/src/Examine_and_Liberate/survey_and_rescue/scripts/cell_coords.json", "r") as read_file:
 	data = json.load(read_file)
 
 
@@ -210,7 +210,7 @@ class sr_scheduler():
 # ```
 
 	def read_tsv(self):
-		with open("/home/default/catkin_ws/src/survey_and_rescue/scripts/LED_OrgConfig.tsv") as tsvfile:
+		with open("/home/prashant/catkin_ws/src/Examine_and_Liberate/survey_and_rescue/scripts/LED_OrgConfig.tsv") as tsvfile:
 			tsvreader = csv.reader(tsvfile, delimiter="\t")
 			for line in tsvreader:
 				if line[-1] == 'BASE':

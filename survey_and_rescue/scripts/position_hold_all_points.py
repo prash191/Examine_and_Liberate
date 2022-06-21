@@ -26,6 +26,7 @@ from std_msgs.msg import Int16
 from std_msgs.msg import Int64
 from std_msgs.msg import Float64
 from pid_tune.msg import PidTune
+from survey_and_rescue.msg import*
 import rospy
 import time
 import sys, select, termios, tty
@@ -47,13 +48,13 @@ class Edrone():
 	def __init__(self):
 		
 		rospy.init_node('drone_control')	# initializing ros node with name drone_control
-		
+		self.detect_info_msg = SRInfo()
 
 		# This corresponds to your current position of drone. This value must be updated each time in your whycon callback
 		# [x,y,z]
 		self.drone_position = [0.0,0.0,0.0]	
 		self.data = {}
-		with open("cell_coords.json", "r") as read_file:
+		with open("/home/prashant/catkin_ws/src/Examine_and_Liberate/survey_and_rescue/scripts/cell_coords.json", "r") as read_file:
 			self.data = json.load(read_file)
 
 		self.setpoint = []
@@ -85,12 +86,16 @@ class Edrone():
 		# self.Kd = [320,320,240]
 
 		# self.Kp = [10, 10, 45]
-		# self.Ki = [0.2, 0.2, 0.1]
+		# self.Ki = [0, 0, 0]
 		# self.Kd = [340,340,240]
 
-		self.Kp = [[8, 8, 42], [15, 32, 45]]
-		self.Ki = [[0, 0, 0], [0.2, 0.2, 0.1]]
-		self.Kd = [[350,350,270], [320, 320, 240]]
+		# self.Kp = [[8, 8, 42], [15, 32, 45]]
+		# self.Ki = [[0, 0, 0], [0, 0, 0]]
+		# self.Kd = [[350,350,270], [320, 320, 240]]
+
+		self.Kp = [[15, 15, 45], [15, 32, 45]]
+		self.Ki = [[0.2, 0.2, 0.1], [0, 0, 0]]
+		self.Kd = [[340,340,240], [320, 320, 240]]
 
 		#-----------------------Add other required variables for pid here ----------------------------------------------
 
@@ -167,8 +172,9 @@ class Edrone():
 	def decision_callback(self,msg):
 		self.out=[0,0,0]
 		self.Iterm=[0,0,0]
-		
-		self.setpoint = (self.data[msg.location])
+		print(msg.location)
+		self.setpoint = self.data[msg.location]
+		print(self.setpoint)
 		# self.setpoint=self.cell_coords.get(msg.location)
 
 
@@ -249,76 +255,77 @@ class Edrone():
 		# Steps:
 		# 	1. Compute error in each axis. eg: error[0] = self.drone_position[0] - self.setpoint[0] ,where error[0] corresponds to error in x...
 		
-			
-			for i in range(0,3):
-				self.error[i] = self.drone_position[i] - self.setpoint[i]
+			if(self.setpoint):
 
-			for i in range(0,3):
-				self.sum_of_error[i]+=self.error[i] 
-
-		#	2. Compute the error (for proportional), change in error (for derivative) and sum of errors (for integral) in each axis. Refer "Understanding PID.pdf" to understand PID equation.
-			for i in range(0,3):
-				self.change_in_error[i] = self.error[i] - self.prev_error[i]
-
-		 	
-
-		#	3. Calculate the pid output required for each axis. For eg: calcuate self.out_roll, self.out_pitch, etc.
-			# 2.011, 1.109, 26.95==d4,,,,,,,,,,,,,,-4.702, -6.123, 27.047,,,,,,,,,,,,,,,,,,,,,,,,7.815, 7.438, 21.89==f6
-			id = 0
-			if(abs(self.error[0])>6.7 or abs(self.error[1])>7.2):
-				id = 0
-			else:
-				id=1
-
-			self.out_roll  = self.Kp[id][0]*self.error[0] + (self.sum_of_error[0]) * self.Ki[id][0] + self.Kd[id][0]*self.change_in_error[0]
-			self.out_pitch = self.Kp[id][1]*self.error[1] + (self.sum_of_error[1]) * self.Ki[id][1] + self.Kd[id][1]*self.change_in_error[1]
-			self.out_alt   = self.Kp[id][2]*self.error[2] + (self.sum_of_error[2]) * self.Ki[id][2] + self.Kd[id][2]*self.change_in_error[2]
-			
-		#	4. Reduce or add this computed output value on the avg value ie 1500. For eg: self.cmd.rcRoll = 1500 + self.out_roll. LOOK OUT FOR SIGN (+ or -). EXPERIMENT AND FIND THE CORRECT SIGN
-			self.cmd.rcRoll=1500-self.out_roll
-			self.cmd.rcPitch=1500+self.out_pitch
-			self.cmd.rcThrottle=1500+self.out_alt
-		#	5. Don't run the pid continously. Run the pid only at the a sample time. self.sample_time defined above is for this purpose. THIS IS VERY IMPORTANT.
-
-		#	6. Limit the output value and the final command value between the maximum(2000) and minimum(1000)range before publishing. For eg : if self.cmd.rcPitch > self.max_values[1]:
-		#																														self.cmd.rcPitch = self.max_values[1]
-			if self.cmd.rcRoll > self.max_value[0]:
-				self.cmd.rcRoll = self.max_value[0]
-
-			if self.cmd.rcRoll < self.min_value[0]:
-				self.cmd.rcRoll = self.min_value[0]
-			
-			if self.cmd.rcPitch > self.max_value[1]:
-				self.cmd.rcPitch = self.max_value[1]
-
-			if self.cmd.rcPitch < self.min_value[1]:
-				self.cmd.rcPitch = self.min_value[1]
-
-			if self.cmd.rcThrottle > self.max_value[2]:
-				self.cmd.rcThrottle = self.max_value[2]
-
-			if self.cmd.rcThrottle < self.min_value[2]:
-				self.cmd.rcThrottle = self.min_value[2]
-
-
-		#	7. Update previous errors.eg: self.prev_error[1] = error[1] where index 1 corresponds to that of pitch (eg)
-			for i in range(0,3):
-				self.prev_error[i] = self.error[i]
-		#	8. Add error_sum= 
-			
-
-			self.cur_time = rospy.get_time()
-
-			if(self.cur_time - self.prev_time >= self.sample_time):
-				
-				self.prev_time = self.cur_time
 				for i in range(0,3):
-					self.sum_of_error[i] = 0
+					self.error[i] = self.drone_position[i] - self.setpoint[i]
+
+				for i in range(0,3):
+					self.sum_of_error[i]+=self.error[i] 
+
+			#	2. Compute the error (for proportional), change in error (for derivative) and sum of errors (for integral) in each axis. Refer "Understanding PID.pdf" to understand PID equation.
+				for i in range(0,3):
+					self.change_in_error[i] = self.error[i] - self.prev_error[i]
+
 				
-			self.command_pub.publish(self.cmd)
-			self.roll_error_pub.publish(self.error[0])
-			self.pitch_error_pub.publish(self.error[1])
-			self.alt_error_pub.publish(self.error[2])
+
+			#	3. Calculate the pid output required for each axis. For eg: calcuate self.out_roll, self.out_pitch, etc.
+				# 2.011, 1.109, 26.95==d4,,,,,,,,,,,,,,-4.702, -6.123, 27.047,,,,,,,,,,,,,,,,,,,,,,,,7.815, 7.438, 21.89==f6
+				id = 0
+				# if(abs(self.error[0])>6.7 or abs(self.error[1])>7.2):
+				# 	id = 0
+				# else:
+				# 	id=1
+
+				self.out_roll  = self.Kp[id][0]*self.error[0] + (self.sum_of_error[0]) * self.Ki[id][0] + self.Kd[id][0]*self.change_in_error[0]
+				self.out_pitch = self.Kp[id][1]*self.error[1] + (self.sum_of_error[1]) * self.Ki[id][1] + self.Kd[id][1]*self.change_in_error[1]
+				self.out_alt   = self.Kp[id][2]*self.error[2] + (self.sum_of_error[2]) * self.Ki[id][2] + self.Kd[id][2]*self.change_in_error[2]
+				
+			#	4. Reduce or add this computed output value on the avg value ie 1500. For eg: self.cmd.rcRoll = 1500 + self.out_roll. LOOK OUT FOR SIGN (+ or -). EXPERIMENT AND FIND THE CORRECT SIGN
+				self.cmd.rcRoll=1500-self.out_roll
+				self.cmd.rcPitch=1500+self.out_pitch
+				self.cmd.rcThrottle=1500+self.out_alt
+			#	5. Don't run the pid continously. Run the pid only at the a sample time. self.sample_time defined above is for this purpose. THIS IS VERY IMPORTANT.
+
+			#	6. Limit the output value and the final command value between the maximum(2000) and minimum(1000)range before publishing. For eg : if self.cmd.rcPitch > self.max_values[1]:
+			#																														self.cmd.rcPitch = self.max_values[1]
+				if self.cmd.rcRoll > self.max_value[0]:
+					self.cmd.rcRoll = self.max_value[0]
+
+				if self.cmd.rcRoll < self.min_value[0]:
+					self.cmd.rcRoll = self.min_value[0]
+				
+				if self.cmd.rcPitch > self.max_value[1]:
+					self.cmd.rcPitch = self.max_value[1]
+
+				if self.cmd.rcPitch < self.min_value[1]:
+					self.cmd.rcPitch = self.min_value[1]
+
+				if self.cmd.rcThrottle > self.max_value[2]:
+					self.cmd.rcThrottle = self.max_value[2]
+
+				if self.cmd.rcThrottle < self.min_value[2]:
+					self.cmd.rcThrottle = self.min_value[2]
+
+
+			#	7. Update previous errors.eg: self.prev_error[1] = error[1] where index 1 corresponds to that of pitch (eg)
+				for i in range(0,3):
+					self.prev_error[i] = self.error[i]
+			#	8. Add error_sum= 
+				
+
+				self.cur_time = rospy.get_time()
+
+				if(self.cur_time - self.prev_time >= self.sample_time):
+					
+					self.prev_time = self.cur_time
+					for i in range(0,3):
+						self.sum_of_error[i] = 0
+					
+				self.command_pub.publish(self.cmd)
+				self.roll_error_pub.publish(self.error[0])
+				self.pitch_error_pub.publish(self.error[1])
+				self.alt_error_pub.publish(self.error[2])
 
 	# def waypoint(self, id):
 	# 	if id == len(self.setpoints):
