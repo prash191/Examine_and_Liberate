@@ -1,15 +1,7 @@
 #!/usr/bin/env python
 
 
-# ```
-# * Team Id : #2161
-# * Author List : Ayush Gupta, Akansh Maurya
-# * Filename: = scheduler.py
-# * Theme: survey and rescue
-# * Functions: select_red, select_blue, select_green, selector, check, scheduler, main,
-# * whycon_callback, detection_callback, serviced_callback, stats_callback, dec_info.
-# * Global Variables: NONE
-# ```
+
 
 
 from __future__ import print_function
