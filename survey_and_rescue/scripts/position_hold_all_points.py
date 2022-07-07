@@ -106,13 +106,7 @@ class Edrone():
 
 
 
-		# Hint : Add variables for storing previous errors in each axis, like self.prev_values = [0,0,0] where corresponds to [pitch, roll, throttle]
-		#		 Add variables for limiting the values like self.max_values = [2000,2000,2000] corresponding to [roll, pitch, throttle]
-		#													self.min_values = [1000,1000,1000] corresponding to [pitch, roll, throttle]
-		#																	You can change the upper limit and lower limit accordingly. 
-		#----------------------------------------------------------------------------------------------------------
-
-		# # This is the sample time in which you need to run pid. Choose any time which you seem fit. Remember the stimulation step time is 50 ms
+		
 		self.sample_time = 0.050 # in seconds
 		self.cur_time = 0.00
 		self.prev_time = 0.00
@@ -270,7 +264,7 @@ class Edrone():
 				
 
 			#	3. Calculate the pid output required for each axis. For eg: calcuate self.out_roll, self.out_pitch, etc.
-				# 2.011, 1.109, 26.95==d4,,,,,,,,,,,,,,-4.702, -6.123, 27.047,,,,,,,,,,,,,,,,,,,,,,,,7.815, 7.438, 21.89==f6
+				
 				id = 0
 				# if(abs(self.error[0])>6.7 or abs(self.error[1])>7.2):
 				# 	id = 0
@@ -365,12 +359,4 @@ if __name__ == '__main__':
 	termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
 
 
-	# e_drone = Edrone()
-	# r = rospy.Rate(20) #specify rate in Hz based upon your desired PID sampling time, i.e. if desired sample time is 33ms specify rate as 30Hz
-	# while not rospy.is_shutdown():
-	# 	if e_drone.setpoint_index == len(e_drone.setpoints):
-	# 		e_drone.land()
-	# 		break
-	# 	# e_drone.waypoint(e_drone.setpoint_index)
-	# 	e_drone.pid()
-	# 	r.sleep()
+	
