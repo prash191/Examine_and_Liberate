@@ -1,15 +1,6 @@
 #!/usr/bin/env python
 
 
-# 
-# * Team Id : #2161
-# * Author List : Akansh Maurya, Ayush Gupta
-# * Filename: = beacon_detector.py
-# * Theme: survey and rescue
-# * Functions: load_rois, image_callback, find_color_contour_centres, main.
-# * Global Variables: A(to store whycon coordinate of RoIs as a list.)
-# 
-
 
 from __future__ import print_function
 import roslib
